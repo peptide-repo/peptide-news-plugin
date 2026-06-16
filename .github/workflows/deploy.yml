@@ -4,8 +4,12 @@ on:
   push:
     branches: [ main ]
 
+# contents: write required so the ci.yml caller can pass write permission
+# through to the phpcbf auto-commit step in the reusable workflow.
+# (phpcbf commit only fires on pull_request events, but GH enforces caller
+# permissions at token-grant time, not at step-execution time.)
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: deploy-peptide-news-plugin

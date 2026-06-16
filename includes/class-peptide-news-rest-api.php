@@ -104,6 +104,7 @@ class Peptide_News_Rest_API {
 		if ( ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/', $value ) ) {
 			return new WP_Error(
 				'rest_invalid_date',
+				/* translators: %s: REST API parameter name */
 				sprintf( __( 'Invalid date format for %s. Expected Y-m-d.', 'peptide-news' ), $param ),
 				array( 'status' => 400 )
 			);

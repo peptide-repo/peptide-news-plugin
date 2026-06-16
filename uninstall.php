@@ -2,7 +2,7 @@
 declare( strict_types=1 );
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-    exit;
+	exit;
 }
 global $wpdb;
 $prefix = $wpdb->prefix;
@@ -16,12 +16,12 @@ $wpdb->query( "DROP TABLE IF EXISTS {$prefix}peptide_news_articles" );
 
 // Delete all plugin options.
 $wpdb->query(
-    "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'peptide\_news\_%'"
+	"DELETE FROM {$wpdb->options} WHERE option_name LIKE 'peptide\_news\_%'"
 );
 
 // Remove transient caches.
 $wpdb->query(
-    "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_peptide\_news\_%' OR option_name LIKE '_transient_timeout_peptide\_news\_%'"
+	"DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_peptide\_news\_%' OR option_name LIKE '_transient_timeout_peptide\_news\_%'"
 );
 
 // Clear scheduled events.

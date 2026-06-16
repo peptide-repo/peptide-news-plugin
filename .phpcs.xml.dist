@@ -73,9 +73,13 @@
         <type>warning</type>
     </rule>
 
-    <!-- PHP Compatibility — target PHP 7.4+ -->
-    <config name="testVersion" value="7.4-"/>
-    <rule ref="PHPCompatibilityWP"/>
+    <!--
+        PHPCompatibilityWP removed: the estate CI reusable workflow installs
+        only wp-coding-standards/wpcs + phpcsutils + phpcsextra via global
+        composer require. phpcompatibility/phpcompatibility-wp is not available
+        in that environment. PHP version targeting is covered by the lint-php
+        matrix job (8.1 / 8.2 / 8.3 syntax check).
+    -->
 
     <!-- Allow long lines in SQL queries up to 200 chars -->
     <rule ref="Generic.Files.LineLength">

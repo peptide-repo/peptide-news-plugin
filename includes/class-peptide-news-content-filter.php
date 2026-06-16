@@ -79,7 +79,7 @@ class Peptide_News_Content_Filter {
 			);
 
 			if ( 'promotional' === $result['verdict'] ) {
-				$removed++;
+				++$removed;
 				self::log( sprintf( 'Blocked (rule: %s, score: %d): %s', $result['rule'], $result['score'], $article['title'] ) );
 				continue;
 			}
@@ -87,10 +87,10 @@ class Peptide_News_Content_Filter {
 			// Borderline articles go to LLM for a second opinion.
 			if ( 'borderline' === $result['verdict'] && self::is_llm_filter_enabled() ) {
 				$llm_verdict = self::classify_with_llm( $article );
-				$llm_checked++;
+				++$llm_checked;
 
 				if ( 'promotional' === $llm_verdict ) {
-					$removed++;
+					++$removed;
 					self::log( sprintf( 'Blocked (LLM confirmed borderline): %s', $article['title'] ) );
 					continue;
 				}

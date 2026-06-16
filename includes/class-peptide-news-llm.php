@@ -183,7 +183,7 @@ class Peptide_News_LLM {
 			$result = self::process_article( $article );
 
 			if ( ! empty( $result['success'] ) ) {
-				$processed++;
+				++$processed;
 			}
 			if ( ! empty( $result['errors'] ) ) {
 				$last_errors = $result['errors'];

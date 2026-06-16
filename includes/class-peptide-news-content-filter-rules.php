@@ -107,7 +107,7 @@ class Peptide_News_Content_Filter_Rules {
 				continue;
 			}
 			if ( false !== strpos( $body_text, $keyword ) ) {
-				$body_matches++;
+				++$body_matches;
 				$matched_keys[] = $keyword;
 				$score         += 15;
 			}

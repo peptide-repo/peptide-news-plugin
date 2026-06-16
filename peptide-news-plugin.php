@@ -3,7 +3,7 @@
  * Plugin Name:       Peptide News Aggregator
  * Plugin URI:        https://github.com/peptiderepo/peptide-news-plugin
  * Description:       Aggregates and displays the latest peptide research news from multiple sources with click analytics and trend reporting.
- * Version:           2.4.1
+ * Version:           2.5.0
  * Author:            peptiderepo
  * Author URI:        https://github.com/peptiderepo
  * License:           GPL-2.0+
@@ -24,7 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Current plugin version — follows SemVer.
  */
-define( 'PEPTIDE_NEWS_VERSION', '2.4.0' );
+define( 'PEPTIDE_NEWS_VERSION', '2.5.0' );
 define( 'PEPTIDE_NEWS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PEPTIDE_NEWS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'PEPTIDE_NEWS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

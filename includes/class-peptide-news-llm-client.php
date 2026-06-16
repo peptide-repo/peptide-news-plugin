@@ -137,7 +137,7 @@ class Peptide_News_LLM_Client {
 				$retry_after = wp_remote_retrieve_header( $response, 'retry-after' );
 				$wait = $retry_after ? min( (int) $retry_after, 30 ) : $backoff;
 				sleep( $wait );
-				$retries++;
+				++$retries;
 				$backoff *= 2;
 				continue;
 			}
