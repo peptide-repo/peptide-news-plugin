@@ -1,134 +1,27 @@
-name: CI — Lint & Test
+##
+# Thin CI caller — peptide-news-plugin
+#
+# Delegates all lint/test/file-size jobs to the estate reusable workflow.
+# Per estate standard: workflow_call is required so deploy.yml can gate on it.
+# See: peptiderepo/peptide-e2e/.github/workflows/ci.yml@main for job definitions.
+##
+name: CI
 
 on:
+  pull_request: {}
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_call:
+    branches: [main]
+  workflow_call: {}
 
+# Required: calling workflow must declare contents: write so the reusable
+# phpcs job can commit phpcbf auto-fixes back to the PR branch.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  # ── PHP Syntax Check ─────────────────────────────────────────────
-  lint-php:
-    name: PHP Lint (${{ matrix.php }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php: ['8.1', '8.2', '8.3']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: composer
-
-      - name: Syntax check all PHP files
-        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
-
-  # ── Security Audit ───────────────────────────────────────────────
-  security-audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for common PHP security issues
-        run: |
-          echo ":: Checking for direct SQL queries without prepare..."
-          # Exclude uninstall.php (DROP TABLE is standard WP pattern), activator (table DDL),
-          # and logger (TRUNCATE) — these use $wpdb->prefix which is safe internal state.
-          if grep -r "query\s*(\s*['\"].*\$" --include="*.php" --exclude-dir=vendor . 2>/dev/null \
-            | grep -v "\\\$wpdb->prepare" \
-            | grep -v "uninstall\.php" \
-            | grep -v "class-peptide-news-activator\.php" \
-            | grep -v "class-peptide-news-logger\.php" \
-            | grep -v "DROP TABLE" \
-            | grep -v "TRUNCATE" \
-            && [ \${PIPESTATUS[0]} -eq 0 ]; then
-            echo "WARNING: Found potential unescaped SQL queries. Use wpdb->prepare() for all dynamic SQL."
-            exit 1
-          fi
-
-          echo ":: Checking for eval() usage..."
-          if grep -r "eval\s*(" --include="*.php" --exclude-dir=vendor . 2>/dev/null; then
-            echo "ERROR: eval() found. This is a critical security risk."
-            exit 1
-          fi
-
-          echo ":: Checking for base64_decode without validation..."
-          if grep -r "base64_decode\s*(" --include="*.php" --exclude-dir=vendor . 2>/dev/null; then
-            echo "WARNING: Found base64_decode(). Ensure the input is properly validated."
-          fi
-
-          echo ":: Checking for file_get_contents with user input..."
-          if grep -r "file_get_contents\s*(\s*\$" --include="*.php" --exclude-dir=vendor . 2>/dev/null; then
-            echo "WARNING: Found file_get_contents with variable. Ensure input is validated and restricted."
-          fi
-
-          echo "All security checks passed."
-
-  # ── PHPCS Coding Standards ───────────────────────────────────────
-  phpcs:
-    name: PHPCS
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Run PHPCS
-        run: vendor/bin/phpcs --standard=.phpcs.xml.dist
-        continue-on-error: true
-
-  # ── PHPUnit Tests ────────────────────────────────────────────────
-  phpunit:
-    name: PHPUnit (${{ matrix.php }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php: ['8.1', '8.2', '8.3']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: composer
-          coverage: xdebug
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Run PHPUnit
-        run: vendor/bin/phpunit --testdox
-
-  # ── JavaScript Lint ──────────────────────────────────────────────
-  lint-js:
-    name: JS Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Check JS syntax
-        run: |
-          for f in $(find . -name '*.js' -not -path './vendor/*' -not -path './node_modules/*' -not -path '*/vendor/*'); do
-            node --check "$f" || exit 1
-          done
+  ci:
+    uses: peptiderepo/peptide-e2e/.github/workflows/ci.yml@main
+    with:
+      tests: stubs
+      has_js: true
+    secrets: inherit

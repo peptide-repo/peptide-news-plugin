@@ -21,9 +21,9 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
-        "lint": "phpcs",
-        "lint:fix": "phpcbf",
+        "test": "vendor/bin/phpunit --configuration phpunit.xml.dist",
+        "lint": "vendor/bin/phpcs",
+        "lint:fix": "vendor/bin/phpcbf",
         "check": [
             "@lint",
             "@test"
