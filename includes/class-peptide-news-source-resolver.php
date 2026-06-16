@@ -126,7 +126,7 @@ class Peptide_News_Source_Resolver {
 
 			if ( ! empty( $new_source ) && $new_source !== $article->source ) {
 				$wpdb->update( $table, array( 'source' => $new_source ), array( 'id' => $article->id ), array( '%s' ), array( '%d' ) );
-				$updated++;
+				++$updated;
 			}
 		}
 

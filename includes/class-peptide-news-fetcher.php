@@ -87,7 +87,7 @@ class Peptide_News_Fetcher {
 		$stored = 0;
 		foreach ( $articles as $article ) {
 			if ( $this->store_article( $article ) ) {
-				$stored++;
+				++$stored;
 			}
 		}
 
