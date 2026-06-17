@@ -4,6 +4,11 @@ All notable changes to Peptide News Plugin are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning: [Semantic Versioning](https://semver.org/).
 
+## [2.5.1] - 2026-06-17
+
+### Fixed
+- PHP 8.3 `TypeError` on Articles admin page: `number_format()` rejects the numeric string returned by `$wpdb->get_var()`. Cast `$total` to `(int)` at point of assignment in `admin/partials/articles-list.php` (#31).
+
 ## [2.5.0] — 2026-06-16
 
 ### Changed

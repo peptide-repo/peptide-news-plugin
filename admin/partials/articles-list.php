@@ -19,7 +19,7 @@ $per_page = 25;
 $offset  = ( $page - 1 ) * $per_page;
 
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$total = $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $articles = $wpdb->get_results( $wpdb->prepare(
 	"SELECT * FROM {$table} ORDER BY published_at DESC LIMIT %d OFFSET %d",
