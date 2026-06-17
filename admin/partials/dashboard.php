@@ -105,8 +105,8 @@ $total_articles = count( $top_articles );
 							<td><a href="<?php echo esc_url( $article->source_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $article->title ); ?></a></td>
 							<td><?php echo esc_html( $article->source ); ?></td>
 							<td><?php echo esc_html( $article->categories ); ?></td>
-							<td><strong><?php echo esc_html( number_format( $article->total_clicks ) ); ?></strong></td>
-							<td><?php echo esc_html( number_format( $article->total_unique ) ); ?></td>
+							<td><strong><?php echo esc_html( number_format( (int) $article->total_clicks ) ); ?></strong></td>
+							<td><?php echo esc_html( number_format( (int) $article->total_unique ) ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
