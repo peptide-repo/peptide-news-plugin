@@ -5,7 +5,9 @@
  * @package Peptide_News
  */
 
-class ArticlesListTotalCastTest extends WP_UnitTestCase {
+use PHPUnit\Framework\TestCase;
+
+class ArticlesListTotalCastTest extends TestCase {
     /**
      * Verify that $wpdb->get_var returning a numeric string does not
      * cause a TypeError in number_format() (PHP 8.3 strict typing).
