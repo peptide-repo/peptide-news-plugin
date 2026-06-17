@@ -23,7 +23,7 @@ jobs:
   deploy:
     name: Deploy (shared pipeline)
     needs: test
-    uses: peptiderepo/peptide-e2e/.github/workflows/deploy-app.yml@main
+    uses: peptide-repo/peptide-e2e/.github/workflows/deploy-app.yml@main
     with:
       target_path: wp-content/plugins/peptide-news-plugin
     secrets: inherit

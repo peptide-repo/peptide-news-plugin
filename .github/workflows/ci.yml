@@ -3,7 +3,7 @@
 #
 # Delegates all lint/test/file-size jobs to the estate reusable workflow.
 # Per estate standard: workflow_call is required so deploy.yml can gate on it.
-# See: peptiderepo/peptide-e2e/.github/workflows/ci.yml@main for job definitions.
+# See: peptide-repo/peptide-e2e/.github/workflows/ci.yml@main for job definitions.
 ##
 name: CI
 
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   ci:
-    uses: peptiderepo/peptide-e2e/.github/workflows/ci.yml@main
+    uses: peptide-repo/peptide-e2e/.github/workflows/ci.yml@main
     with:
       tests: stubs
       has_js: true
