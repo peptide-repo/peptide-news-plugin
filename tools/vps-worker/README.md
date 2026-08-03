@@ -66,7 +66,7 @@ This directory contains the **v2.6.0 Standalone VPS Worker**, designed for high-
 All endpoints require either WordPress admin authentication OR a valid `X-Peptide-News-Token: <your-token>` header:
 
 - `GET /wp-json/peptide-news/v1/worker/pending?limit=20`  
-  Returns pending articles requiring AI analysis.
+  Returns pending articles requiring AI analysis. The worker fetches this with the token also in the query string (`&token=...`) so the cached response is namespaced by the secret, which survives shared-host LiteSpeed caching that ignores `X-LiteSpeed-Cache-Control: no-cache`; the header is still sent alongside.
 - `POST /wp-json/peptide-news/v1/worker/update`  
   Updates an article with completed AI summaries, tags, and scientific rigor scores.
 - `POST /wp-json/peptide-news/v1/worker/ingest`  
