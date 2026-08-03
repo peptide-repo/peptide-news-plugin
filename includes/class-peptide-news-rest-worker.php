@@ -29,6 +29,9 @@ class Peptide_News_Rest_Worker {
 	 * @return bool|WP_Error
 	 */
 	public function check_worker_permissions( $request ) {
+		nocache_headers();
+		header( 'X-LiteSpeed-Cache-Control: no-cache' );
+
 		if ( current_user_can( 'manage_options' ) ) {
 			return true;
 		}
