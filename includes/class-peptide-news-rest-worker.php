@@ -23,7 +23,11 @@ class Peptide_News_Rest_Worker {
 
 	/**
 	 * Check whether the incoming request is authenticated as an admin
-	 * OR bears a valid VPS worker secret token in X-Peptide-News-Token header.
+	 * OR bears a valid VPS worker secret token.
+	 *
+	 * GET requests (pending) require the token as a query parameter so
+	 * cached responses are namespaced by the secret; POST requests accept
+	 * the X-Peptide-News-Token header (or query token) or an admin session.
 	 *
 	 * @param WP_REST_Request $request
 	 * @return bool|WP_Error
