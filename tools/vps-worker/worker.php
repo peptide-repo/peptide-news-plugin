@@ -86,8 +86,9 @@ function wp_rest_call( string $url, string $token, string $method = 'GET', array
 }
 
 if ( $action === 'pending' ) {
+	$pending_url = "{$wp_url}/wp-json/peptide-news/v1/worker/pending?limit={$batch}&token=" . rawurlencode( $token );
 	vps_log( "Fetching pending articles from {$wp_url}/wp-json/peptide-news/v1/worker/pending ..." );
-	$res = wp_rest_call( "{$wp_url}/wp-json/peptide-news/v1/worker/pending?limit={$batch}&token={$token}", $token );
+	$res = wp_rest_call( $pending_url, $token );
 	if ( ! $res || empty( $res['success'] ) ) {
 		vps_log( "Failed to retrieve pending articles." );
 		exit( 1 );
@@ -105,7 +106,8 @@ if ( $action === 'process-llm' ) {
 		exit( 1 );
 	}
 	vps_log( "Pulling up to {$batch} pending articles from WordPress..." );
-	$res = wp_rest_call( "{$wp_url}/wp-json/peptide-news/v1/worker/pending?limit={$batch}&token={$token}", $token );
+	$pending_url = "{$wp_url}/wp-json/peptide-news/v1/worker/pending?limit={$batch}&token=" . rawurlencode( $token );
+	$res = wp_rest_call( $pending_url, $token );
 	if ( ! $res || empty( $res['success'] ) || empty( $res['data'] ) ) {
 		vps_log( "No pending articles found or failed to retrieve." );
 		exit( 0 );

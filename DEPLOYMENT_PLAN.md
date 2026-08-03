@@ -41,11 +41,11 @@ Before deploying to WordPress, create a clean, installable ZIP archive (`peptide
 2. In WordPress Admin -> **Settings -> Peptide News**:
    - Under **NCBI API Key**, enter an NCBI API key (optional, increases PubMed rate limit to 10 req/sec).
    - Under **VPS Worker Integration**, enter a strong secret token (e.g., `coolify_secret_token_2026`) and save.
-3. Verify the REST API endpoint responds correctly:
+3. Verify the REST API endpoint responds correctly. **The token MUST be sent as a query parameter for GET requests** — the shared host's LiteSpeed caches REST responses per-URI and ignores `X-LiteSpeed-Cache-Control: no-cache`, so header-only auth on GET would let a cached authenticated response leak to unauthenticated requests:
    ```bash
-   curl -i -H "X-Peptide-News-Token: coolify_secret_token_2026" \
-        "https://your-wordpress-site.com/wp-json/peptide-news/v1/worker/pending?limit=5"
+   curl -i "https://your-wordpress-site.com/wp-json/peptide-news/v1/worker/pending?limit=5&token=coolify_secret_token_2026"
    ```
+   POST routes (`/worker/update`, `/worker/ingest`) are never cached and accept the `X-Peptide-News-Token` header (or query `token`).
 
 ### Step 3: Deploy Worker Application to Coolify (Hostinger KVM8 VPS)
 Use the Coolify UI or Coolify MCP to create and configure the standalone worker:
@@ -66,6 +66,7 @@ Use the Coolify UI or Coolify MCP to create and configure the standalone worker:
      - **Cron Expression**: `0 * * * *` *(runs hourly)*
      - **Command**: `php /app/worker.php`
    - Click **Deploy** to build and launch the Alpine PHP container.
+4. **IMPORTANT — keep the container alive**: the Dockerfile `CMD` runs the worker once and exits, and Coolify's scheduled tasks execute via `docker exec` (which fails while a container is restarting). Coolify ignores `start_command` for `dockerfile` build packs, so set **Custom Docker Run Options** to `--entrypoint "tail -f /dev/null"`. This is a Coolify-side setting (not in the repo), so re-apply it if the application resource is ever recreated. The scheduled task remains the only worker driver.
 
 ---
 
