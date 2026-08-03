@@ -32,23 +32,27 @@ class Peptide_News_Rest_Worker {
 		nocache_headers();
 		header( 'X-LiteSpeed-Cache-Control: no-cache' );
 
-		if ( current_user_can( 'manage_options' ) ) {
-			return true;
-		}
-
-		$token       = get_option( 'peptide_news_vps_token', '' );
+		$token = get_option( 'peptide_news_vps_token', '' );
 		if ( ! empty( $token ) && class_exists( 'Peptide_News_Encryption' ) ) {
 			$decrypted = Peptide_News_Encryption::decrypt( (string) $token );
 			if ( ! empty( $decrypted ) ) {
 				$token = $decrypted;
 			}
 		}
-		$header_auth = $request->get_header( 'x_peptide_news_token' );
-		if ( empty( $header_auth ) ) {
-			$header_auth = $request->get_param( 'token' );
+
+		if ( WP_REST_Server::READABLE === $request->get_method() ) {
+			$auth_token = (string) $request->get_param( 'token' );
+		} else {
+			if ( current_user_can( 'manage_options' ) ) {
+				return true;
+			}
+			$auth_token = (string) $request->get_header( 'x_peptide_news_token' );
+			if ( empty( $auth_token ) ) {
+				$auth_token = (string) $request->get_param( 'token' );
+			}
 		}
 
-		if ( ! empty( $token ) && ! empty( $header_auth ) && hash_equals( (string) $token, (string) $header_auth ) ) {
+		if ( ! empty( $token ) && ! empty( $auth_token ) && hash_equals( (string) $token, $auth_token ) ) {
 			return true;
 		}
 
