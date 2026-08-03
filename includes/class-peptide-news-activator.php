@@ -57,11 +57,16 @@ class Peptide_News_Activator {
 			ai_summary TEXT NOT NULL,
 			hash VARCHAR(64) NOT NULL DEFAULT '',
 			is_active TINYINT(1) NOT NULL DEFAULT 1,
+			rigor_score TINYINT(1) UNSIGNED DEFAULT NULL,
+			study_type VARCHAR(50) DEFAULT NULL,
+			ai_metadata LONGTEXT DEFAULT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY hash (hash),
 			KEY idx_published (published_at),
 			KEY idx_source (source),
-			KEY idx_active_published (is_active, published_at)
+			KEY idx_active_published (is_active, published_at),
+			KEY idx_rigor_score (rigor_score),
+			KEY idx_study_type (study_type)
 		) {$charset_collate};";
 
 		// Click analytics table — one row per click event.
@@ -120,11 +125,23 @@ class Peptide_News_Activator {
 			'newsapi_key'          => '',
 			'newsapi_enabled'      => 0,
 			'rss_feeds'            => implode( "\n", array(
-				'https://news.google.com/rss/search?q=peptide+research&hl=en-US&gl=US&ceid=US:en',
-				'https://pubmed.ncbi.nlm.nih.gov/rss/search/1sUlVGjEXm1YN9QiGPblv_-bwB51JCtyLwVX85CVGDKCHFFR9Q/?limit=20&utm_campaign=pubmed-2&fc=20220101000000',
+				'https://news.google.com/rss/search?q=(%22peptide+research%22+OR+%22peptide+therapeutics%22+OR+%22peptide+drug+discovery%22+OR+%22macrocyclic+peptides%22+OR+%22GLP-1+receptor%22)+-prnewswire+-businesswire+-globenewswire+-accesswire+-openpr+-cision+-einpresswire+-newswire+-newsfilecorp+-gossip+-celebrity+-kardashian+-hollywood+-supplement+-vendor+-clinic+-%22press+release%22+-%22sponsored+post%22+-%22market+report%22+-cagr&hl=en-US&gl=US&ceid=US:en',
+				'https://pubmed.ncbi.nlm.nih.gov/rss/search/1sUlVGjEXm1YN9QiGPblv_-bwB51JCtyLwVX85CVGDKCHFFR9Q/?limit=50&utm_campaign=pubmed-2&fc=20240101000000',
+				'https://connect.biorxiv.org/biorxiv_xml.php?subject=biochemistry+pharmacology_and_toxicology+bioengineering+synthetic_biology',
+				'https://connect.medrxiv.org/medrxiv_xml.php?subject=endocrinology+pharmacology_and_therapeutics',
+				'https://onlinelibrary.wiley.com/feed/10991387/most-recent',
+				'https://www.nature.com/nchembio.rss',
+				'https://www.nature.com/nrd.rss',
+				'https://www.nature.com/natbiomedeng.rss',
+				'https://www.sciencedaily.com/rss/matter_energy/biochemistry.xml',
+				'https://www.sciencedaily.com/rss/health_medicine/pharmacology.xml',
+				'https://www.biospace.com/rss/',
+				'https://www.statnews.com/feed/',
+				'https://endpts.com/feed/',
+				'https://www.fiercebiotech.com/rss/Fierce%20Biotech%20Homepage/xml',
 			) ),
 			'rss_enabled'          => 1,
-			'search_keywords'      => 'peptide, peptides, peptide therapy, peptide research, BPC-157, Thymosin, GHK-Cu',
+			'search_keywords'      => '("peptide research" OR "peptide therapeutics" OR "peptide drug discovery" OR "macrocyclic peptides" OR "GLP-1 receptor" OR "BPC-157" OR "GHK-Cu") NOT (prnewswire OR businesswire OR globenewswire OR accesswire OR openpr OR "press release" OR "market report" OR "sponsored post" OR celebrity OR gossip OR kardashian OR supplement OR vendor)',
 			'thumbnail_fallback'   => PEPTIDE_NEWS_PLUGIN_URL . 'public/images/default-thumb.png',
 			'article_retention'    => 90,
 			'analytics_retention'  => 365,
@@ -143,6 +160,19 @@ class Peptide_News_Activator {
 			if ( false === get_option( "peptide_news_{$key}" ) ) {
 				add_option( "peptide_news_{$key}", $value );
 			}
+		}
+
+		// Upgrade legacy default feeds and keywords to high-signal scientific defaults.
+		$current_feeds = (string) get_option( 'peptide_news_rss_feeds', '' );
+		$legacy_feeds  = 'https://news.google.com/rss/search?q=peptide+research&hl=en-US&gl=US&ceid=US:en' . "\n" .
+			'https://pubmed.ncbi.nlm.nih.gov/rss/search/1sUlVGjEXm1YN9QiGPblv_-bwB51JCtyLwVX85CVGDKCHFFR9Q/?limit=20&utm_campaign=pubmed-2&fc=20220101000000';
+		if ( $legacy_feeds === $current_feeds ) {
+			update_option( 'peptide_news_rss_feeds', $defaults['rss_feeds'] );
+		}
+
+		$current_kw = (string) get_option( 'peptide_news_search_keywords', '' );
+		if ( 'peptide, peptides, peptide therapy, peptide research, BPC-157, Thymosin, GHK-Cu' === $current_kw ) {
+			update_option( 'peptide_news_search_keywords', $defaults['search_keywords'] );
 		}
 	}
 

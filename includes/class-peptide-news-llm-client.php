@@ -91,6 +91,34 @@ class Peptide_News_LLM_Client {
 	 * @return array{content: string|\WP_Error, usage: array, request_id: string, cost: float}
 	 */
 	public static function call_with_usage( string $api_key, string $model, string $prompt ): array {
+		$messages = array(
+			array(
+				'role'    => 'user',
+				'content' => $prompt,
+			),
+		);
+		return self::call_messages( $api_key, $model, $messages, 300, 0.3 );
+	}
+
+	/**
+	 * Call the OpenRouter API with structured message arrays and optional response_format (JSON schema).
+	 *
+	 * @param string $api_key         The API key.
+	 * @param string $model           Model ID.
+	 * @param array  $messages        Array of message arrays ('role', 'content').
+	 * @param int    $max_tokens      Max completion tokens.
+	 * @param float  $temperature     Sampling temperature.
+	 * @param array  $response_format Optional JSON schema format array.
+	 * @return array{content: string|\WP_Error, usage: array, request_id: string, cost: float}
+	 */
+	public static function call_messages(
+		string $api_key,
+		string $model,
+		array $messages,
+		int $max_tokens = 800,
+		float $temperature = 0.3,
+		array $response_format = array()
+	): array {
 		$result = array(
 			'content'    => '',
 			'usage'      => array(),
@@ -99,23 +127,22 @@ class Peptide_News_LLM_Client {
 		);
 
 		$body = array(
-			'model'    => $model,
-			'messages' => array(
-				array(
-					'role'    => 'user',
-					'content' => $prompt,
-				),
-			),
-			'max_tokens'  => 300,
-			'temperature' => 0.3,
+			'model'       => $model,
+			'messages'    => $messages,
+			'max_tokens'  => $max_tokens,
+			'temperature' => $temperature,
 		);
+
+		if ( ! empty( $response_format ) ) {
+			$body['response_format'] = $response_format;
+		}
 
 		$retries = 0;
 		$backoff = 2; // Initial backoff in seconds.
 
 		while ( $retries <= self::MAX_RETRIES ) {
 			$response = wp_remote_post( self::get_api_url(), array(
-				'timeout' => 15,
+				'timeout' => 20,
 				'headers' => array(
 					'Authorization' => 'Bearer ' . $api_key,
 					'Content-Type'  => 'application/json',
@@ -145,7 +172,7 @@ class Peptide_News_LLM_Client {
 			break;
 		}
 
-		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		$data = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		// Extract usage data from response regardless of success/failure.
 		if ( is_array( $data ) && isset( $data['usage'] ) && is_array( $data['usage'] ) ) {

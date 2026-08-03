@@ -61,6 +61,30 @@ class Peptide_News_Admin_Settings {
 		$this->add_setting( 'newsapi_enabled', __( 'Enable NewsAPI', 'peptide-news' ), 'render_newsapi_enabled_field', 'peptide_news_newsapi' );
 		$this->add_setting( 'newsapi_key', __( 'API Key', 'peptide-news' ), 'render_newsapi_key_field', 'peptide_news_newsapi' );
 
+		// --- NCBI E-utilities section ---
+		add_settings_section(
+			'peptide_news_ncbi_section',
+			__( 'NCBI PubMed E-utilities', 'peptide-news' ),
+			function () {
+				echo '<p>' . esc_html__( 'Optional. An NCBI API key raises PubMed rate limits from 3 req/sec to 10 req/sec.', 'peptide-news' ) . '</p>';
+			},
+			'peptide-news-settings'
+		);
+
+		$this->add_setting( 'ncbi_api_key', __( 'NCBI API Key', 'peptide-news' ), 'render_ncbi_key_field', 'peptide_news_ncbi_section' );
+
+		// --- VPS Worker section ---
+		add_settings_section(
+			'peptide_news_vps_section',
+			__( 'VPS Worker Integration', 'peptide-news' ),
+			function () {
+				echo '<p>' . esc_html__( 'Optional. Set a secret token to allow an external VPS worker to sync articles via REST API without admin login.', 'peptide-news' ) . '</p>';
+			},
+			'peptide-news-settings'
+		);
+
+		$this->add_setting( 'vps_token', __( 'VPS Worker Token', 'peptide-news' ), 'render_vps_token_field', 'peptide_news_vps_section' );
+
 		// --- Analytics section ---
 		add_settings_section(
 			'peptide_news_analytics_section',
@@ -200,6 +224,12 @@ class Peptide_News_Admin_Settings {
 			'newsapi_enabled'       => 'absint',
 			'newsapi_key'           => function ( $value ) {
 				return $this->sanitize_api_key( $value, 'peptide_news_newsapi_key' );
+			},
+			'ncbi_api_key'          => function ( $value ) {
+				return $this->sanitize_api_key( $value, 'peptide_news_ncbi_api_key' );
+			},
+			'vps_token'             => function ( $value ) {
+				return $this->sanitize_api_key( $value, 'peptide_news_vps_token' );
 			},
 			'article_retention'     => 'absint',
 			'analytics_retention'   => 'absint',

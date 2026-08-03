@@ -79,15 +79,56 @@ class Peptide_News_RSS_Source {
 			return array();
 		}
 
+		$title   = sanitize_text_field( $item->get_title() );
+		$content = wp_kses_post( $item->get_content() );
+		$author  = sanitize_text_field( $item->get_author() ? $item->get_author()->get_name() : '' );
+
+		// Check if PubMed item
+		$pmid = Peptide_News_PubMed_Extractor::get_pmid( $article_url );
+		if ( $pmid ) {
+			$pubmed_data = Peptide_News_PubMed_Extractor::fetch_by_pmid( $pmid );
+			if ( ! empty( $pubmed_data['abstract'] ) ) {
+				$content = $pubmed_data['abstract'];
+				if ( ! empty( $pubmed_data['title'] ) ) {
+					$title = $pubmed_data['title'];
+				}
+				if ( ! empty( $pubmed_data['authors'] ) && empty( $author ) ) {
+					$author = $pubmed_data['authors'];
+				}
+			}
+		} else {
+			// Check if content is sparse (< 200 chars plain text)
+			$plain_text = wp_strip_all_tags( $content );
+			if ( strlen( trim( $plain_text ) ) < 200 ) {
+				$target_url = $article_url;
+				if ( Peptide_News_Google_URL_Resolver::is_aggregator_url( $article_url ) ) {
+					$resolved = Peptide_News_Google_URL_Resolver::resolve( $article_url );
+					if ( $resolved && $resolved !== $article_url ) {
+						$target_url = $resolved;
+					}
+				}
+				$extracted = Peptide_News_Content_Extractor::extract( '', $target_url );
+				if ( ! empty( $extracted['content'] ) && strlen( $extracted['content'] ) > strlen( $plain_text ) ) {
+					$content = $extracted['content'];
+					if ( ! empty( $extracted['title'] ) && empty( $title ) ) {
+						$title = $extracted['title'];
+					}
+					if ( ! empty( $extracted['author'] ) && empty( $author ) ) {
+						$author = $extracted['author'];
+					}
+				}
+			}
+		}
+
 		$source_name = Peptide_News_Source_Resolver::resolve( $item, $feed_url, $article_url );
 
 		return array(
 			'source'        => $source_name,
 			'source_url'    => $article_url,
-			'title'         => sanitize_text_field( $item->get_title() ),
-			'excerpt'       => wp_trim_words( wp_strip_all_tags( $item->get_description() ), 40 ),
-			'content'       => wp_kses_post( $item->get_content() ),
-			'author'        => sanitize_text_field( $item->get_author() ? $item->get_author()->get_name() : '' ),
+			'title'         => $title,
+			'excerpt'       => wp_trim_words( wp_strip_all_tags( $content ), 40 ),
+			'content'       => $content,
+			'author'        => $author,
 			'thumbnail_url' => '',
 			'published_at'  => $pub_date,
 			'categories'    => self::extract_categories( $item ),

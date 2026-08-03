@@ -63,6 +63,27 @@ class Peptide_News_Rest_API {
 				'args'                => $this->get_date_range_args(),
 			) );
 		}
+
+		// VPS Worker integration routes (/worker/*).
+		$worker = new Peptide_News_Rest_Worker();
+		register_rest_route( self::API_NAMESPACE, '/worker/pending', array(
+			'methods'             => 'GET',
+			'callback'            => array( $worker, 'get_pending_articles' ),
+			'permission_callback' => array( $worker, 'check_worker_permissions' ),
+			'args'                => array(
+				'limit' => array( 'default' => 20, 'sanitize_callback' => 'absint' ),
+			),
+		) );
+		register_rest_route( self::API_NAMESPACE, '/worker/update', array(
+			'methods'             => 'POST',
+			'callback'            => array( $worker, 'update_article' ),
+			'permission_callback' => array( $worker, 'check_worker_permissions' ),
+		) );
+		register_rest_route( self::API_NAMESPACE, '/worker/ingest', array(
+			'methods'             => 'POST',
+			'callback'            => array( $worker, 'ingest_articles' ),
+			'permission_callback' => array( $worker, 'check_worker_permissions' ),
+		) );
 	}
 
 	/**

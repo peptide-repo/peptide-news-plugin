@@ -117,6 +117,26 @@ class Peptide_News_Admin_Field_Renderers {
 		);
 	}
 
+	public static function render_ncbi_key_field(): void {
+		$value         = get_option( 'peptide_news_ncbi_api_key', '' );
+		$display_value = ! empty( $value ) ? self::mask_api_key( $value ) : '';
+		printf(
+			'<input type="password" name="peptide_news_ncbi_api_key" value="%s" class="regular-text" placeholder="%s" />',
+			esc_attr( $display_value ),
+			esc_attr__( 'Enter NCBI API key (optional)', 'peptide-news' )
+		);
+	}
+
+	public static function render_vps_token_field(): void {
+		$value         = get_option( 'peptide_news_vps_token', '' );
+		$display_value = ! empty( $value ) ? self::mask_api_key( $value ) : '';
+		printf(
+			'<input type="password" name="peptide_news_vps_token" value="%s" class="regular-text" placeholder="%s" />',
+			esc_attr( $display_value ),
+			esc_attr__( 'Enter secret VPS token (optional)', 'peptide-news' )
+		);
+	}
+
 	public static function render_article_retention_field(): void {
 		$value = get_option( 'peptide_news_article_retention', 90 );
 		printf(

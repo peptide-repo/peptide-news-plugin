@@ -63,9 +63,12 @@ class Peptide_News_Source_Resolver {
 
 		// Strategy 3: Resolve aggregator redirect URL to actual destination.
 		if ( $is_aggregator ) {
-			$resolved = self::resolve_redirect_url( $article_url );
+			$resolved = Peptide_News_Google_URL_Resolver::resolve( $article_url );
+			if ( ! $resolved || $resolved === $article_url ) {
+				$resolved = self::resolve_redirect_url( $article_url );
+			}
 			if ( $resolved && $resolved !== $article_url ) {
-				$domain = self::extract_domain( $resolved );
+				$domain = self::extract_domain( (string) $resolved );
 				if ( 'unknown' !== $domain && $domain !== $feed_domain ) {
 					return $domain;
 				}
@@ -114,9 +117,12 @@ class Peptide_News_Source_Resolver {
 
 			// Fall back to resolving the redirect URL.
 			if ( empty( $new_source ) ) {
-				$resolved = self::resolve_redirect_url( $article->source_url );
+				$resolved = Peptide_News_Google_URL_Resolver::resolve( $article->source_url );
+				if ( ! $resolved || $resolved === $article->source_url ) {
+					$resolved = self::resolve_redirect_url( $article->source_url );
+				}
 				if ( $resolved && $resolved !== $article->source_url ) {
-					$domain = self::extract_domain( $resolved );
+					$domain = self::extract_domain( (string) $resolved );
 					if ( 'unknown' !== $domain && ! in_array( $domain, $aggregators, true ) ) {
 						$new_source = $domain;
 					}
@@ -138,30 +144,39 @@ class Peptide_News_Source_Resolver {
 	 *
 	 * Side effects: nonce + capability check, delegates to backfill(),
 	 * clears article cache on success, sends JSON response.
+	 *
+	 * @return void
 	 */
 	public static function ajax_backfill(): void {
-		check_ajax_referer( 'peptide_news_admin', 'nonce' );
+		check_ajax_referer( 'peptide_news_admin_nonce', 'nonce' );
+
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Unauthorized', 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'peptide-news' ) ), 403 );
 		}
 
 		$updated = self::backfill();
-		wp_send_json_success( array( 'updated' => $updated ) );
+
+		if ( $updated > 0 ) {
+			wp_cache_delete( 'peptide_news_recent_articles' );
+		}
+
+		wp_send_json_success( array(
+			'updated' => $updated,
+			/* translators: %d: number of articles updated */
+			'message' => sprintf( _n( 'Updated %d article source.', 'Updated %d article sources.', $updated, 'peptide-news' ), $updated ),
+		) );
 	}
 
 	/**
-	 * Parse "Headline - Source" pattern from a title string.
+	 * Parse a source name from the end of a title ("Headline - Source Name").
 	 *
-	 * @param string|null $title
-	 * @return string|null Source name or null if pattern not found.
+	 * @param string $title
+	 * @return string|null Source name or null if not matched.
 	 */
-	private static function parse_source_from_title( ?string $title ): ?string {
-		if ( empty( $title ) ) {
-			return null;
-		}
-		if ( preg_match( '/\s[-\x{2013}\x{2014}]\s([^-\x{2013}\x{2014}]+)$/u', $title, $matches ) ) {
+	public static function parse_source_from_title( string $title ): ?string {
+		if ( preg_match( '/\s+-\s+([^-]+)$/', $title, $matches ) ) {
 			$candidate = trim( $matches[1] );
-			if ( mb_strlen( $candidate ) >= 2 && mb_strlen( $candidate ) <= 60 ) {
+			if ( strlen( $candidate ) >= 2 && strlen( $candidate ) <= 60 ) {
 				return sanitize_text_field( $candidate );
 			}
 		}
@@ -176,7 +191,7 @@ class Peptide_News_Source_Resolver {
 	 * @param string $url The URL to resolve.
 	 * @return string|false The final URL or false on failure.
 	 */
-	private static function resolve_redirect_url( string $url ) {
+	public static function resolve_redirect_url( string $url ) {
 		if ( empty( $url ) ) {
 			return false;
 		}
@@ -203,11 +218,12 @@ class Peptide_News_Source_Resolver {
 			}
 		}
 
-		if ( ! empty( $final_url ) ) {
-			// Reject cross-domain redirects.
-			$original_host = wp_parse_url( $url, PHP_URL_HOST );
-			$final_host    = wp_parse_url( $final_url, PHP_URL_HOST );
-			if ( $original_host !== $final_host ) {
+		if ( ! empty( $final_url ) && is_string( $final_url ) ) {
+			$original_host = (string) wp_parse_url( $url, PHP_URL_HOST );
+			$final_host    = (string) wp_parse_url( $final_url, PHP_URL_HOST );
+			$clean_original = preg_replace( '/^www\./', '', $original_host );
+			// Allow cross-domain redirects if original host is an aggregator.
+			if ( $original_host !== $final_host && ! in_array( $clean_original, self::AGGREGATOR_DOMAINS, true ) ) {
 				return false;
 			}
 			return $final_url;

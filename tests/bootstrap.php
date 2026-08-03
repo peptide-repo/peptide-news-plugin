@@ -65,6 +65,11 @@ if ( ! function_exists( 'sanitize_textarea_field' ) ) {
         return trim( strip_tags( $str ) );
     }
 }
+if ( ! function_exists( 'wp_kses_post' ) ) {
+    function wp_kses_post( $str ) {
+        return strip_tags( (string) $str, '<p><a><b><i><strong><em><ul><ol><li><br><blockquote>' );
+    }
+}
 if ( ! function_exists( 'absint' ) ) {
     function absint( $val ) {
         return abs( (int) $val );
@@ -235,12 +240,16 @@ if ( ! class_exists( 'WP_Error' ) ) {
 // Content filter can be loaded standalone (no WordPress runtime needed).
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-content-filter-rules.php';
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-content-filter.php';
+require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-google-url-resolver.php';
+require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-pubmed-extractor.php';
+require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-content-extractor.php';
 
 // LLM subsystem: client and prompt-builder must load before the orchestrator.
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-llm-client.php';
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-llm-prompt-builder.php';
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-llm-ajax.php';
 require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-llm.php';
+require_once PEPTIDE_NEWS_PLUGIN_DIR . 'includes/class-peptide-news-cli.php';
 
 // Stub AJAX-related functions used by cost tracker and other modules.
 if ( ! function_exists( 'wp_send_json_success' ) ) {

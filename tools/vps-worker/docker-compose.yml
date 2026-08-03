@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  peptide-worker:
+    build: .
+    image: peptide-news-worker:v2.6.0
+    restart: "no"
+    environment:
+      WP_URL: "https://your-shared-wordpress-site.com"
+      VPS_TOKEN: "your_secret_vps_token"
+      WORKER_ACTION: "process-llm"
+      OPENROUTER_KEY: "sk-or-v1-your-key"
+      OPENROUTER_MODEL: "google/gemini-2.0-flash-001"
+      BATCH_SIZE: "25"
